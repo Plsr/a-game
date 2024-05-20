@@ -1,50 +1,37 @@
-import { tileSize } from "../../gameConfig";
+import { Vector2D } from "../types/math";
+import { Entity } from "./Entity";
+import { Player as PlayerComponent } from "../components/Player";
+import { MovementDirection } from "../types/movement";
 
-type Position2D = {
-  x: number;
-  y: number;
-};
-
-export class Player {
-  private position: Position2D;
-
-  constructor() {
-    console.log("new");
-    this.position = {
-      x: 0,
-      y: 0,
-    };
+export class Player extends Entity {
+  constructor(position: Vector2D) {
+    super({ position: position, component: PlayerComponent });
   }
 
-  get currentPosition() {
-    return this.position;
-  }
-
-  // TODO: Move tilesize out of here, this class should only be concerned with coordinates
-  move(direction: PlayerDirection) {
+  move(direction: MovementDirection) {
     console.log("moving");
     switch (direction) {
       case "ArrowUp":
         this.position = {
           x: this.position.x,
-          y: this.position.y - tileSize,
+          y: this.position.y - 1,
         };
         break;
       case "ArrowDown":
         this.position = {
           x: this.position.x,
-          y: this.position.y + tileSize,
+          y: this.position.y + 1,
         };
         break;
       case "ArrowLeft":
         this.position = {
-          x: this.position.x - tileSize,
+          x: this.position.x - 1,
           y: this.position.y,
         };
         break;
       case "ArrowRight":
         this.position = {
-          x: this.position.x + tileSize,
+          x: this.position.x + 1,
           y: this.position.y,
         };
         break;
@@ -53,9 +40,3 @@ export class Player {
     console.log(this.position);
   }
 }
-
-export type PlayerDirection =
-  | "ArrowUp"
-  | "ArrowDown"
-  | "ArrowLeft"
-  | "ArrowRight";

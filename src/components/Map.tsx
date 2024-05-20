@@ -1,11 +1,29 @@
 import { useEffect, useState } from "react";
 import { tileSize } from "../../gameConfig";
-import { Player as PlayerClass } from "../lib/Player";
 
-import { Player } from "./Player";
+import { World } from "../lib/World";
+import { Entity } from "../lib/Entity";
+import { MovementDirection } from "../types/movement";
 
-export const Map = ({ player }: { player: PlayerClass }) => {
+export const Map = ({ world }: { world: World<Entity> }) => {
   const [frameTime, setFrameTime] = useState(0);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const handledEvents = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+
+      if (handledEvents.includes(e.key)) {
+        e.preventDefault();
+        if (world.canMove(world.playerEntity, e.key as MovementDirection)) {
+          world.playerEntity.move(e.key as MovementDirection);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  });
 
   useEffect(() => {
     let frameId: number;
@@ -48,10 +66,17 @@ export const Map = ({ player }: { player: PlayerClass }) => {
               left: x * tileSize,
               top: y * tileSize,
             }}
-          />
+          >
+            <div>
+              {x}|{y}
+            </div>
+          </div>
         );
       })}
-      <Player playerClass={player} />
+      {world.entities.map((entity, i) => {
+        const Component = entity.component;
+        return <Component key={i} position={entity.position} />;
+      })}
     </div>
   );
 };

@@ -1,26 +1,8 @@
-import { useEffect } from "react";
 import { tileSize } from "../../gameConfig";
-import { Player as P, PlayerDirection } from "../lib/Player";
+import { posToPx } from "../lib/Map";
+import { Vector2D } from "../types/math";
 
-export const Player = ({ playerClass }: { playerClass: P }) => {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const handledEvents = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-
-      if (handledEvents.includes(e.key)) {
-        e.preventDefault();
-        playerClass.move(e.key as PlayerDirection);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  });
-
-  console.log(playerClass.currentPosition);
-  // console.log("rerendered");
-
+export const Player = ({ position }: { position: Vector2D }) => {
   return (
     <div
       style={{
@@ -29,8 +11,8 @@ export const Player = ({ playerClass }: { playerClass: P }) => {
         width: tileSize + "px",
         height: tileSize + "px",
         background: "purple",
-        left: playerClass.currentPosition.x,
-        top: playerClass.currentPosition.y,
+        left: posToPx(position.x),
+        top: posToPx(position.y),
         zIndex: 1,
         position: "absolute",
       }}
