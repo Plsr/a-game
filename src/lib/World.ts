@@ -3,6 +3,7 @@ import { MovementDirection } from "../types/movement";
 import { Entity } from "./Entity";
 import { Player } from "./Player";
 
+// TODO: Player as property of World
 export class World<T extends Entity> {
   entities: T[];
   dimensions: { x: number; y: number };
@@ -14,6 +15,16 @@ export class World<T extends Entity> {
 
   addEntity(entity: T) {
     this.entities.push(entity);
+  }
+
+  canInteract(entity: T, position: Vector2D): boolean {
+    const targetEntity = this.getEntityAtPosition(position);
+    if (!targetEntity) {
+      return false;
+    }
+
+    console.log(targetEntity.interactable);
+    return !!targetEntity && targetEntity.interactable;
   }
 
   canMove(entity: T, direction: MovementDirection): boolean {
@@ -54,12 +65,26 @@ export class World<T extends Entity> {
     )! as unknown as Player;
   }
 
-  getEntityAtPosition(position: Vector2D): T | undefined {
-    return this.entities.find((entity) => {
+  getEntityAtPosition(position: Vector2D, includeDead = false): T | undefined {
+    const entity = this.entities.find((entity) => {
       return (
         entity.currentPosition.x === position.x &&
         entity.currentPosition.y === position.y
       );
     });
+
+    if (!entity) {
+      return undefined;
+    }
+
+    if (!includeDead && entity.isDead) {
+      return undefined;
+    }
+
+    return entity;
+  }
+
+  removeDeadEntities() {
+    this.entities = this.entities.filter((entity) => !entity.isDead);
   }
 }

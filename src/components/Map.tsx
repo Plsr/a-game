@@ -4,9 +4,10 @@ import { tileSize } from "../../gameConfig";
 import { World } from "../lib/World";
 import { Entity } from "../lib/Entity";
 import { MovementDirection } from "../types/movement";
+import { Item } from "../lib/Inventory";
 
 export const Map = ({ world }: { world: World<Entity> }) => {
-  const [frameTime, setFrameTime] = useState(0);
+  const [, setFrameTime] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -16,6 +17,24 @@ export const Map = ({ world }: { world: World<Entity> }) => {
         e.preventDefault();
         if (world.canMove(world.playerEntity, e.key as MovementDirection)) {
           world.playerEntity.move(e.key as MovementDirection);
+        }
+      }
+
+      if (e.key === "Enter") {
+        if (
+          world.canInteract(world.playerEntity, {
+            x: world.playerEntity.position.x + 1,
+            y: world.playerEntity.position.y,
+          })
+        ) {
+          const ret = world
+            .getEntityAtPosition({
+              x: world.playerEntity.position.x + 1,
+              y: world.playerEntity.position.y,
+            })
+            ?.interact();
+
+          ret && world.playerEntity.inventory.addItem(ret as Item);
         }
       }
     };
@@ -41,42 +60,66 @@ export const Map = ({ world }: { world: World<Entity> }) => {
 
   const tiles = Array.from({ length: mapSize * mapSize });
 
-  return (
-    <div
-      // key={frameTime}
-      style={{
-        width: `${tileSize * mapSize}px`,
-        height: `${tileSize * mapSize}px`,
-        background: "green",
-        position: "relative",
-      }}
-    >
-      {tiles.map((_, i) => {
-        const x = i % mapSize;
-        const y = Math.floor(i / mapSize);
+  // TODO: This might be awful for performance
+  world.removeDeadEntities();
 
-        return (
-          <div
-            key={i}
-            style={{
-              width: tileSize,
-              height: tileSize,
-              background: (x + y) % 2 === 0 ? "blue" : "darkblue",
-              position: "absolute",
-              left: x * tileSize,
-              top: y * tileSize,
-            }}
-          >
-            <div>
-              {x}|{y}
+  return (
+    <>
+      <div
+        // key={frameTime}
+        style={{
+          width: `${tileSize * mapSize}px`,
+          height: `${tileSize * mapSize}px`,
+          background: "green",
+          position: "relative",
+        }}
+      >
+        {tiles.map((_, i) => {
+          const x = i % mapSize;
+          const y = Math.floor(i / mapSize);
+
+          return (
+            <div
+              key={i}
+              style={{
+                width: tileSize,
+                height: tileSize,
+                background: (x + y) % 2 === 0 ? "blue" : "darkblue",
+                position: "absolute",
+                left: x * tileSize,
+                top: y * tileSize,
+              }}
+            >
+              <div>
+                {x}|{y}
+              </div>
             </div>
-          </div>
-        );
-      })}
-      {world.entities.map((entity, i) => {
-        const Component = entity.component;
-        return <Component key={i} position={entity.position} />;
-      })}
-    </div>
+          );
+        })}
+        {world.entities.map((entity, i) => {
+          if (entity.isDead) return null;
+          const Component = entity.component;
+          return <Component key={i} position={entity.position} />;
+        })}
+      </div>
+      {/* Poor mans inventory */}
+      <div
+        style={{
+          width: `${tileSize * mapSize}px`,
+          height: `80px`,
+          border: "4px solid black",
+          background: "brown",
+          boxSizing: "border-box",
+        }}
+      >
+        <span style={{ fontWeight: "bold" }}>Inventory</span>
+        {world.playerEntity.inventory.items.length === 0 && <div>Empty</div>}
+        <div style={{ marginTop: "4px" }}>
+          {world.playerEntity.inventory.items.map(
+            (i) => `${i.amount} ${i.name}`
+          )}
+        </div>
+      </div>
+    </>
   );
 };
